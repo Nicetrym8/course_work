@@ -11,7 +11,7 @@ void Controller::errWrapper(T &&func)
     catch (const std::exception &e)
     {
         std::cout << e.what() << std::endl
-                  << "Для вызова руководства используйте: autodb -h\n";
+                  << "To show manual use: autodb -h\n";
         std::exit(-1);
     }
 };
@@ -144,13 +144,13 @@ Controller::Controller(int argc, char **argv) : argc(argc), argv(argv)
     index = 0;
     errWrapper([argc, argv, this]()
                {
-                if (argc < 2) throw descriptive_exception("Слишком мало аргументов"); 
+                if (argc < 2) throw descriptive_exception("Too few arguments"); 
                    for (const auto& t : args_array){
-                        if((this->index && argc<3) || (this->index > 2 && argc <4))throw descriptive_exception("Слишком мало аргументов");
+                        if((this->index && argc<3) || (this->index > 2 && argc <4))throw descriptive_exception("Too few arguments");
                         if(std::string(t) == std::string(argv[1]))return;
                         this->index++;
                     }
-                throw descriptive_exception("Данного ключа нет в списке параметров"); });
+                throw descriptive_exception("This key is not in the parameter list"); });
 
     if (argc > 2)
     {
