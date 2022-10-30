@@ -15,6 +15,7 @@ namespace autodb
         size_t index;
         std::fstream db;
         std::fstream temp;
+        size_t count_pages();
         template <typename T>
         void errWrapper(T &&);
         template <typename T>
@@ -25,6 +26,7 @@ namespace autodb
         void search(std::string);
         void show_element(std::string);
         void delete_element(std::string);
+        void show_page(char *);
         void add_element();
         void print_all();
 

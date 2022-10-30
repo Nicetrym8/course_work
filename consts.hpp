@@ -3,24 +3,26 @@
 
 namespace autodb
 {
-    const char manual[] = "Syntax: autodb [key] <arg>  file\nKeys:\n-h              Manual\n-s <arg>        Search in db\n-a              Add new record\n-d <arg>        Delete record\n-t              Print all records\n-p <arg>        Show record by registration number";
+    const char manual[] = "Syntax: autodb [key] <arg>  file\nKeys:\n-h              Manual\n-s <arg>        Search in db\n-a              Add new record\n-d <arg>        Delete record\n-t              Print all records\n-p <arg>        Show record by registration number\n-w <arg>        Print sorted page\n-q              Show page quantity";
     const char args_array[][3] = {
         "-h",
         "-t",
         "-a",
-        "-s",
+        "-q",
         "-d",
         "-p",
-    };
+        "-w",
+        "-s"};
     enum eArgs
     {
         A_HELP,
         A_TABLE,
         A_ADD,
-        A_SEARCH,
+        A_QUANTITY,
         A_DEL,
         A_SHOW,
-
+        A_PAGE,
+        A_SEARCH,
     };
     enum eVehicleTypes
     {

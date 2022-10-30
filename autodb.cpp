@@ -29,6 +29,7 @@ void Controller::readWrapper(T &&logic)
         }
         catch (cereal::Exception &e)
         {
+            db.seekg(std::ios::beg);
             break;
         }
     }
@@ -72,8 +73,7 @@ void Controller::add_element()
     errWrapper([&type]()
                {
         std::cout << "Choose type of transport (Personal - 0, Public - 1): ";
-        std::cin >> type;
-        if(type > VT_PUBLIC)throw descriptive_exception("Incorrect data type"); });
+        if(!(std::cin >> type) ||type > VT_PUBLIC)throw descriptive_exception("Incorrect data type"); });
 
     switch (type)
     {
@@ -87,7 +87,38 @@ void Controller::add_element()
     writeWrapper(ptr, db, [](std::shared_ptr<IVehicle> ptr)
                  { return true; });
 }
+size_t Controller::count_pages()
+{
+    size_t counter = 0;
+    readWrapper([&counter](std::shared_ptr<IVehicle> ptr)
+                { counter++; });
+    return counter / 10 + 1;
+}
+void Controller::show_page(char *arg)
+{
 
+    errWrapper([arg, this]()
+               {
+        std::vector<std::shared_ptr<IVehicle>> vec;
+        size_t index = atoi(arg);
+        size_t counter = 0;
+         if (index && index <= count_pages())
+        {
+        index *= 10;
+        readWrapper([&vec, &counter, index](std::shared_ptr<IVehicle> ptr)
+                    { 
+                      if(counter >= index-10) vec.push_back(ptr); 
+                      counter++;
+                      if (counter >= index)throw cereal::Exception("");});
+        std::sort(vec.begin(), vec.end(), [](std::shared_ptr<IVehicle> a, std::shared_ptr<IVehicle> b)
+                  { return a.get()->operator<(*(b.get())); });
+        print_head();
+        for (const auto &t : vec)
+            t.get()->stream_table(std::cout);
+        return;
+     }
+        throw descriptive_exception("Wrong page index"); });
+}
 void Controller::print_all()
 {
     print_head();
@@ -124,6 +155,9 @@ void Controller::exec()
     case A_TABLE:
         print_all();
         break;
+    case A_QUANTITY:
+        std::cout << "Total page quantity: " << count_pages() << std::endl;
+        break;
     case A_ADD:
         add_element();
         break;
@@ -136,17 +170,20 @@ void Controller::exec()
     case A_SHOW:
         show_element(argv[2]);
         break;
+    case A_PAGE:
+        show_page(argv[2]);
+        break;
     }
 }
+
 Controller::Controller(int argc, char **argv) : argc(argc), argv(argv)
 {
-    // print_head();
     index = 0;
     errWrapper([argc, argv, this]()
                {
                 if (argc < 2) throw descriptive_exception("Too few arguments"); 
                    for (const auto& t : args_array){
-                        if((this->index && argc<3) || (this->index > 2 && argc <4))throw descriptive_exception("Too few arguments");
+                        if((this->index && argc<3) || (this->index > 3 && argc <4))throw descriptive_exception("Too few arguments");
                         if(std::string(t) == std::string(argv[1]))return;
                         this->index++;
                     }

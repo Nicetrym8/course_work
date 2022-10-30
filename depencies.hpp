@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include <vector>
+#include <algorithm>
 #include <fstream>
 #include <exception>
 #include "consts.hpp"

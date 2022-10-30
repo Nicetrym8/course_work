@@ -39,6 +39,10 @@ namespace autodb
             obj.stream(str);
             return str;
         }
+        bool operator<(IVehicle &obj)
+        {
+            return this->name < obj.name;
+        }
     };
 
     class PersonalTransport : public IVehicle
