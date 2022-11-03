@@ -28,6 +28,7 @@ namespace autodb
     {
         VT_PERSONAL,
         VT_PUBLIC,
+        VT_ISSUED,
     };
 }
 #endif

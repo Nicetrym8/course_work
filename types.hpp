@@ -60,15 +60,27 @@ namespace autodb
         void stream(std::ostream &) override;
         void stream_table(std::ostream &) override;
     };
-    class PublicTransport : public IVehicle
+    class OrganizationTransport : public IVehicle
     {
     protected:
         std::string organization;
 
     public:
-        PublicTransport(std::istream &, std::ostream &);
-        PublicTransport(std::string, std::string, std::string, std::string);
-        PublicTransport(){};
+        OrganizationTransport(std::istream &, std::ostream &);
+        OrganizationTransport(std::string, std::string, std::string, std::string);
+        OrganizationTransport(){};
+        template <class Archive>
+        void serialize(Archive &ar);
+        void stream_table(std::ostream &) override;
+        void stream(std::ostream &) override;
+    };
+    class IssuedTransport : public PersonalTransport
+    {
+        std::string organization;
+
+    public:
+        IssuedTransport() {}
+        IssuedTransport(std::istream &, std::ostream &);
         template <class Archive>
         void serialize(Archive &ar);
         void stream_table(std::ostream &) override;

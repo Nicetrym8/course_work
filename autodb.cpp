@@ -72,8 +72,8 @@ void Controller::add_element()
     std::shared_ptr<IVehicle> ptr;
     errWrapper([&type]()
                {
-        std::cout << "Choose type of transport (Personal - 0, Public - 1): ";
-        if(!(std::cin >> type) ||type > VT_PUBLIC)throw descriptive_exception("Incorrect data type"); });
+        std::cout << "Choose type of transport (Personal - 0, Organization - 1, Issued - 2): ";
+        if(!(std::cin >> type) ||type > VT_ISSUED)throw descriptive_exception("Incorrect data type"); });
 
     switch (type)
     {
@@ -81,7 +81,10 @@ void Controller::add_element()
         ptr = std::make_shared<PersonalTransport>(std::cin, std::cout);
         break;
     case VT_PUBLIC:
-        ptr = std::make_shared<PublicTransport>(std::cin, std::cout);
+        ptr = std::make_shared<OrganizationTransport>(std::cin, std::cout);
+        break;
+    case VT_ISSUED:
+        ptr = std::make_shared<IssuedTransport>(std::cin, std::cout);
         break;
     }
     writeWrapper(ptr, db, [](std::shared_ptr<IVehicle> ptr)
