@@ -23,7 +23,7 @@ void Controller::readWrapper(T &&logic)
     {
         try
         {
-            std::shared_ptr<IVehicle> ptr;
+            std::shared_ptr<Vehicle> ptr;
             iarchive(ptr);
             logic(ptr);
         }
@@ -35,31 +35,31 @@ void Controller::readWrapper(T &&logic)
     }
 }
 template <typename T>
-void Controller::writeWrapper(std::shared_ptr<IVehicle> ptr, std::fstream &s, T &&logic)
+void Controller::writeWrapper(std::shared_ptr<Vehicle> ptr, std::fstream &s, T &&logic)
 {
     if (logic(ptr))
     {
-        static cereal::BinaryOutputArchive oarchive(s);
+        cereal::BinaryOutputArchive oarchive(s);
         oarchive(ptr);
     }
 }
 void Controller::search(std::string querry)
 {
     print_head();
-    readWrapper([querry](std::shared_ptr<IVehicle> ptr)
+    readWrapper([querry](std::shared_ptr<Vehicle> ptr)
                 {std::stringstream ss;
                     ss << *ptr.get();
          if (ss.str().find(querry.c_str()) != std::string::npos) ptr.get()->stream_table(std::cout); });
 }
 void Controller::show_element(std::string number)
 {
-    readWrapper([number](std::shared_ptr<IVehicle> ptr)
+    readWrapper([number](std::shared_ptr<Vehicle> ptr)
                 { if (ptr.get()->vehicle_number == number) std::cout << *ptr.get(); });
 }
 void Controller::delete_element(std::string number)
 {
-    readWrapper([number, this](std::shared_ptr<IVehicle> ptr)
-                { this->writeWrapper(ptr, this->temp, [number](std::shared_ptr<IVehicle> p)
+    readWrapper([number, this](std::shared_ptr<Vehicle> ptr)
+                { this->writeWrapper(ptr, this->temp, [number](std::shared_ptr<Vehicle> p)
                                      { return !(p.get()->vehicle_number == number); }); });
     temp.close();
     db.close();
@@ -69,7 +69,7 @@ void Controller::delete_element(std::string number)
 void Controller::add_element()
 {
     int type = 0;
-    std::shared_ptr<IVehicle> ptr;
+    std::shared_ptr<Vehicle> ptr;
     errWrapper([&type]()
                {
         std::cout << "Choose type of transport (Personal - 0, Organization - 1, Issued - 2): ";
@@ -87,13 +87,13 @@ void Controller::add_element()
         ptr = std::make_shared<IssuedTransport>(std::cin, std::cout);
         break;
     }
-    writeWrapper(ptr, db, [](std::shared_ptr<IVehicle> ptr)
+    writeWrapper(ptr, db, [](std::shared_ptr<Vehicle> ptr)
                  { return true; });
 }
 size_t Controller::count_pages()
 {
     size_t counter = 0;
-    readWrapper([&counter](std::shared_ptr<IVehicle> ptr)
+    readWrapper([&counter](std::shared_ptr<Vehicle> ptr)
                 { counter++; });
     return counter / 10 + 1;
 }
@@ -102,18 +102,18 @@ void Controller::show_page(char *arg)
 
     errWrapper([arg, this]()
                {
-        std::vector<std::shared_ptr<IVehicle>> vec;
+        std::vector<std::shared_ptr<Vehicle>> vec;
         size_t index = atoi(arg);
         size_t counter = 0;
          if (index && index <= count_pages())
         {
         index *= 10;
-        readWrapper([&vec, &counter, index](std::shared_ptr<IVehicle> ptr)
+        readWrapper([&vec, &counter, index](std::shared_ptr<Vehicle> ptr)
                     { 
                       if(counter >= index-10) vec.push_back(ptr); 
                       counter++;
                       if (counter >= index)throw cereal::Exception("");});
-        std::sort(vec.begin(), vec.end(), [](std::shared_ptr<IVehicle> a, std::shared_ptr<IVehicle> b)
+        std::sort(vec.begin(), vec.end(), [](std::shared_ptr<Vehicle> a, std::shared_ptr<Vehicle> b)
                   { return a.get()->operator<(*(b.get())); });
         print_head();
         for (const auto &t : vec)
@@ -125,7 +125,7 @@ void Controller::show_page(char *arg)
 void Controller::print_all()
 {
     print_head();
-    readWrapper([](std::shared_ptr<IVehicle> ptr)
+    readWrapper([](std::shared_ptr<Vehicle> ptr)
                 { ptr.get()->stream_table(std::cout); });
 }
 void Controller::print_head()

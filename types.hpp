@@ -16,7 +16,7 @@ namespace autodb
     private:
         std::string msg_;
     };
-    class IVehicle
+    class Vehicle
     {
         friend class Controller;
 
@@ -26,26 +26,29 @@ namespace autodb
         std::string vehicle_number = "";
 
     public:
-        IVehicle() {}
-        IVehicle(std::istream &in, std::ostream &out);
-        virtual ~IVehicle() {}
+        Vehicle() {}
+        Vehicle(std::istream &in, std::ostream &out);
+        virtual ~Vehicle() {}
         virtual void stream(std::ostream &);
         virtual void stream_table(std::ostream &);
         template <class Archive>
-        void serialize(Archive &ar);
+        void serialize(Archive &ar)
+        {
+            ar(name, model, vehicle_number);
+        }
         template <class T>
         friend std::ostream &operator<<(std::ostream &str, T &obj)
         {
             obj.stream(str);
             return str;
         }
-        bool operator<(IVehicle &obj)
+        bool operator<(Vehicle &obj)
         {
             return this->name < obj.name;
         }
     };
 
-    class PersonalTransport : public IVehicle
+    class PersonalTransport : public Vehicle
     {
     protected:
         std::string owners_firstname = "";
@@ -56,11 +59,14 @@ namespace autodb
         PersonalTransport(std::string, std::string, std::string, std::string, std::string);
         PersonalTransport(){};
         template <class Archive>
-        void serialize(Archive &ar);
+        void serialize(Archive &ar)
+        {
+            ar(cereal::base_class<Vehicle>(this), owners_firstname, owners_lastname);
+        }
         void stream(std::ostream &) override;
         void stream_table(std::ostream &) override;
     };
-    class OrganizationTransport : public IVehicle
+    class OrganizationTransport : public Vehicle
     {
     protected:
         std::string organization;
@@ -70,7 +76,10 @@ namespace autodb
         OrganizationTransport(std::string, std::string, std::string, std::string);
         OrganizationTransport(){};
         template <class Archive>
-        void serialize(Archive &ar);
+        void serialize(Archive &ar)
+        {
+            ar(cereal::base_class<Vehicle>(this), organization);
+        }
         void stream_table(std::ostream &) override;
         void stream(std::ostream &) override;
     };
@@ -82,7 +91,10 @@ namespace autodb
         IssuedTransport() {}
         IssuedTransport(std::istream &, std::ostream &);
         template <class Archive>
-        void serialize(Archive &ar);
+        void serialize(Archive &ar)
+        {
+            ar(cereal::base_class<PersonalTransport>(this), organization);
+        }
         void stream_table(std::ostream &) override;
         void stream(std::ostream &) override;
     };

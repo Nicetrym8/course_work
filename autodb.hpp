@@ -21,7 +21,7 @@ namespace autodb
         template <typename T>
         void readWrapper(T &&);
         template <typename T>
-        void writeWrapper(std::shared_ptr<IVehicle>, std::fstream &, T &&);
+        void writeWrapper(std::shared_ptr<Vehicle>, std::fstream &, T &&);
         void print_head();
         void search(std::string);
         void show_element(std::string);
