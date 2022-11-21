@@ -11,7 +11,7 @@ int main()
     {
         cereal::BinaryOutputArchive oarchive(s);
         std::shared_ptr<autodb::Vehicle> p = std::make_shared<autodb::PersonalTransport>(std::to_string(rand() % 10000), std::to_string(rand() % 10000), std::to_string(rand() % 10000), std::to_string(rand() % 10000), std::to_string(rand() % 10000));
-        p.get()->stream_table(std::cout);
+        // p.get()->stream_table(std::cout);
         oarchive(p);
     }
 }

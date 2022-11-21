@@ -2,16 +2,16 @@
 using namespace autodb;
 
 template <typename T>
-void Controller::errWrapper(T &&func)
+void Controller::errWrapper(T &&logic)
 {
     try
     {
-        func();
+        logic();
     }
     catch (const std::exception &e)
     {
         std::cout << e.what() << std::endl
-                  << "To show manual use: autodb -h\n";
+                  << "To show manual use: " << argv[0] << " -h\n";
         std::exit(-1);
     }
 };
@@ -29,6 +29,8 @@ void Controller::readWrapper(T &&logic)
         }
         catch (cereal::Exception &e)
         {
+            if (std::string(e.what()).find("Error while trying to deserialize a smart pointer") != std::string::npos)
+                std::cout << "This file is corrupted" << std::endl;
             db.seekg(std::ios::beg);
             break;
         }
@@ -43,18 +45,21 @@ void Controller::writeWrapper(std::shared_ptr<Vehicle> ptr, std::fstream &s, T &
         oarchive(ptr);
     }
 }
-void Controller::search(std::string querry)
+void Controller::search(std::string query)
 {
     print_head();
-    readWrapper([querry](std::shared_ptr<Vehicle> ptr)
+    readWrapper([query](std::shared_ptr<Vehicle> ptr)
                 {std::stringstream ss;
                     ss << *ptr.get();
-         if (ss.str().find(querry.c_str()) != std::string::npos) ptr.get()->stream_table(std::cout); });
+         if (ss.str().find(query.c_str()) != std::string::npos) ptr->stream_table(std::cout); });
 }
 void Controller::show_element(std::string number)
 {
     readWrapper([number](std::shared_ptr<Vehicle> ptr)
-                { if (ptr.get()->vehicle_number == number) std::cout << *ptr.get(); });
+                { if (ptr->vehicle_number == number){
+                    std::cout << *ptr.get();
+                    throw cereal::Exception("Result found");
+                } });
 }
 void Controller::delete_element(std::string number)
 {
@@ -112,7 +117,7 @@ void Controller::show_page(char *arg)
                     { 
                       if(counter >= index-10) vec.push_back(ptr); 
                       counter++;
-                      if (counter >= index)throw cereal::Exception("");});
+                      if (counter >= index)throw cereal::Exception("Result found");});
         std::sort(vec.begin(), vec.end(), [](std::shared_ptr<Vehicle> a, std::shared_ptr<Vehicle> b)
                   { return a.get()->operator<(*(b.get())); });
         print_head();
@@ -126,7 +131,7 @@ void Controller::print_all()
 {
     print_head();
     readWrapper([](std::shared_ptr<Vehicle> ptr)
-                { ptr.get()->stream_table(std::cout); });
+                { ptr->stream_table(std::cout); });
 }
 void Controller::print_head()
 {
@@ -153,7 +158,7 @@ void Controller::exec()
     switch (index)
     {
     case A_HELP:
-        std::cout << manual << std::endl;
+        std::cout << "Syntax: " << argv[0] << manual << std::endl;
         break;
     case A_TABLE:
         print_all();
