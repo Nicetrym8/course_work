@@ -24,13 +24,13 @@ namespace autodb
         std::string name = "";
         std::string model = "";
         std::string vehicle_number = "";
+        virtual void stream(std::ostream &);
+        virtual void stream_table(std::ostream &);
 
     public:
         Vehicle() {}
         Vehicle(std::istream &in, std::ostream &out);
         virtual ~Vehicle() {}
-        virtual void stream(std::ostream &);
-        virtual void stream_table(std::ostream &);
         template <class Archive>
         void serialize(Archive &ar)
         {
@@ -50,7 +50,10 @@ namespace autodb
 
     class PersonalTransport : public Vehicle
     {
+
     protected:
+        void stream(std::ostream &) override;
+        void stream_table(std::ostream &) override;
         std::string owners_firstname = "";
         std::string owners_lastname = "";
 
@@ -63,12 +66,13 @@ namespace autodb
         {
             ar(cereal::base_class<Vehicle>(this), owners_firstname, owners_lastname);
         }
-        void stream(std::ostream &) override;
-        void stream_table(std::ostream &) override;
     };
     class OrganizationTransport : public Vehicle
     {
+
     protected:
+        void stream_table(std::ostream &) override;
+        void stream(std::ostream &) override;
         std::string organization;
 
     public:
@@ -80,11 +84,13 @@ namespace autodb
         {
             ar(cereal::base_class<Vehicle>(this), organization);
         }
-        void stream_table(std::ostream &) override;
-        void stream(std::ostream &) override;
     };
     class IssuedTransport : public PersonalTransport
     {
+
+    protected:
+        void stream_table(std::ostream &) override;
+        void stream(std::ostream &) override;
         std::string organization;
 
     public:
@@ -95,8 +101,6 @@ namespace autodb
         {
             ar(cereal::base_class<PersonalTransport>(this), organization);
         }
-        void stream_table(std::ostream &) override;
-        void stream(std::ostream &) override;
     };
 }
 #endif
