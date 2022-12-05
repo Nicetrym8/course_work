@@ -9,10 +9,11 @@ namespace autodb
 
     class Controller
     {
-    private:
         int argc;
         char **argv;
         size_t index;
+        std::ostream &ostr;
+        std::istream &istr;
         std::fstream db;
         std::fstream temp;
         size_t count_pages();
@@ -32,7 +33,7 @@ namespace autodb
 
     public:
         ~Controller();
-        Controller(int, char **);
+        Controller(int, char **, std::istream &, std::ostream &);
         void exec();
     };
 

@@ -10,8 +10,8 @@ void Controller::errWrapper(T &&logic)
     }
     catch (const std::exception &e)
     {
-        std::cout << e.what() << std::endl
-                  << "To show manual use: " << argv[0] << " -h\n";
+        ostr << e.what() << std::endl
+             << "To show manual use: " << argv[0] << " -h\n";
         std::exit(-1);
     }
 };
@@ -30,7 +30,7 @@ void Controller::readWrapper(T &&logic)
         catch (cereal::Exception &e)
         {
             if (std::string(e.what()).find("Error while trying to deserialize a smart pointer") != std::string::npos)
-                std::cout << "This file is corrupted" << std::endl;
+                ostr << "This file is corrupted" << std::endl;
             db.seekg(std::ios::beg);
             break;
         }
@@ -48,16 +48,16 @@ void Controller::writeWrapper(std::shared_ptr<Vehicle> ptr, std::fstream &s, T &
 void Controller::search(std::string query)
 {
     print_head();
-    readWrapper([query](std::shared_ptr<Vehicle> ptr)
+    readWrapper([query, this](std::shared_ptr<Vehicle> ptr)
                 {std::stringstream ss;
                     ss << *ptr.get();
-         if (ss.str().find(query.c_str()) != std::string::npos) ptr->stream_table(std::cout); });
+         if (ss.str().find(query.c_str()) != std::string::npos) ptr->stream_table(ostr); });
 }
 void Controller::show_element(std::string number)
 {
-    readWrapper([number](std::shared_ptr<Vehicle> ptr)
+    readWrapper([number, this](std::shared_ptr<Vehicle> ptr)
                 { if (ptr->vehicle_number == number){
-                    std::cout << *ptr.get();
+                    ostr << *ptr.get();
                     throw cereal::Exception("Result found");
                 } });
 }
@@ -75,21 +75,22 @@ void Controller::add_element()
 {
     int type = 0;
     std::shared_ptr<Vehicle> ptr;
-    errWrapper([&type]()
+
+    errWrapper([&type, this]()
                {
-        std::cout << "Choose type of transport (Personal - 0, Organization - 1, Issued - 2): ";
-        if(!(std::cin >> type) ||type > VT_ISSUED)throw descriptive_exception("Incorrect data type"); });
+        ostr << "Choose type of transport (Personal - 0, Organization - 1, Issued - 2): ";
+        if(!(istr >> type) ||type > VT_ISSUED)throw descriptive_exception("Incorrect data type"); });
 
     switch (type)
     {
     case VT_PERSONAL:
-        ptr = std::make_shared<PersonalTransport>(std::cin, std::cout);
+        ptr = std::make_shared<PersonalTransport>(istr, ostr);
         break;
     case VT_PUBLIC:
-        ptr = std::make_shared<OrganizationTransport>(std::cin, std::cout);
+        ptr = std::make_shared<OrganizationTransport>(istr, ostr);
         break;
     case VT_ISSUED:
-        ptr = std::make_shared<IssuedTransport>(std::cin, std::cout);
+        ptr = std::make_shared<IssuedTransport>(istr, ostr);
         break;
     }
     writeWrapper(ptr, db, [](std::shared_ptr<Vehicle> ptr)
@@ -122,7 +123,7 @@ void Controller::show_page(char *arg)
                   { return a.get()->operator<(*(b.get())); });
         print_head();
         for (const auto &t : vec)
-            t.get()->stream_table(std::cout);
+            t.get()->stream_table(ostr);
         return;
      }
         throw descriptive_exception("Wrong page index"); });
@@ -130,20 +131,20 @@ void Controller::show_page(char *arg)
 void Controller::print_all()
 {
     print_head();
-    readWrapper([](std::shared_ptr<Vehicle> ptr)
-                { ptr->stream_table(std::cout); });
+    readWrapper([this](std::shared_ptr<Vehicle> ptr)
+                { ptr->stream_table(ostr); });
 }
 void Controller::print_head()
 {
-    std::cout << std::string(107, '-') << '\n'
-              << "| " << std::setw(15) << "Vendor"
-              << " | " << std::setw(15) << "Model"
-              << " | " << std::setw(15) << "Number"
-              << " |" << std::setw(15) << "Firstname"
-              << " |" << std::setw(15) << "Lastname"
-              << " | " << std::setw(15) << "Organization"
-              << " |\n"
-              << std::string(107, '-') << '\n';
+    ostr << std::string(107, '-') << '\n'
+         << "| " << std::setw(15) << "Vendor"
+         << " | " << std::setw(15) << "Model"
+         << " | " << std::setw(15) << "Number"
+         << " |" << std::setw(15) << "Firstname"
+         << " |" << std::setw(15) << "Lastname"
+         << " | " << std::setw(15) << "Organization"
+         << " |\n"
+         << std::string(107, '-') << '\n';
 }
 
 Controller::~Controller()
@@ -158,13 +159,13 @@ void Controller::exec()
     switch (index)
     {
     case A_HELP:
-        std::cout << "Syntax: " << argv[0] << manual << std::endl;
+        ostr << "Syntax: " << argv[0] << manual << std::endl;
         break;
     case A_TABLE:
         print_all();
         break;
     case A_QUANTITY:
-        std::cout << "Total page quantity: " << count_pages() << std::endl;
+        ostr << "Total page quantity: " << count_pages() << std::endl;
         break;
     case A_ADD:
         add_element();
@@ -184,7 +185,7 @@ void Controller::exec()
     }
 }
 
-Controller::Controller(int argc, char **argv) : argc(argc), argv(argv)
+Controller::Controller(int argc, char **argv, std::istream &istr, std::ostream &ostr) : argc(argc), argv(argv), ostr(ostr), istr(istr)
 {
     index = 0;
     errWrapper([argc, argv, this]()
